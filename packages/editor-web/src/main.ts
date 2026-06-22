@@ -1,76 +1,87 @@
 import { EditorState } from "@learning-editor/editor-core";
-import { actionFromKeyboardEvent } from "./keyboard";
+
 import { EditorRenderer } from "./renderer";
+import { focusScrollArea, queryEditorElements } from "./utils";
+import { actionFromKeyboardEvent } from "./keyboard";
 import "./styles.css";
 
-const app = document.querySelector<HTMLDivElement>("#app");
+const app = document.querySelector("#app");
 
 if (!app) {
   throw new Error("Missing #app element");
 }
 
-app.innerHTML = `
-  <main class="shell">
-    <header class="toolbar">
-      <button class="toolbar-button" type="button" data-command="undo">Undo</button>
-      <button class="toolbar-button" type="button" data-command="redo">Redo</button>
-    </header>
-    <section class="editor-frame" aria-label="Text editor">
-      <div class="editor-scroll" tabindex="0">
-        <div class="editor-lines"></div>
-      </div>
-      <textarea class="input-capture" aria-hidden="true" tabindex="-1"></textarea>
-    </section>
-    <footer class="status-bar"></footer>
-  </main>
-`;
-
-const editor = new EditorState(
-  "Hello editor\n\nThis project keeps the core separate from the browser."
-);
-const scrollArea = app.querySelector<HTMLDivElement>(".editor-scroll");
-const linesElement = app.querySelector<HTMLDivElement>(".editor-lines");
-const statusElement = app.querySelector<HTMLElement>(".status-bar");
-const inputCapture = app.querySelector<HTMLTextAreaElement>(".input-capture");
+const { inputCapture, linesElement, scrollArea, statusElement } =
+  queryEditorElements(app);
 
 if (!scrollArea || !linesElement || !statusElement || !inputCapture) {
   throw new Error("Editor DOM was not created correctly");
 }
 
-const renderer = new EditorRenderer(editor, linesElement, statusElement);
-editor.onDidChange(() => renderer.render());
-renderer.render();
+const { editor } = initEditorTracking(linesElement, statusElement);
 
-scrollArea.addEventListener("keydown", (event) => {
-  const action = actionFromKeyboardEvent(event);
-  if (!action) {
-    return;
-  }
+attachControllerButtonsHandlers(app, scrollArea);
+attachScrollAreaEventHandlers(scrollArea);
 
-  event.preventDefault();
-  editor.dispatch(action);
-});
+focusScrollArea(scrollArea);
 
-scrollArea.addEventListener("pointerdown", () => {
-  scrollArea.focus();
-});
+/* -- Initialized -- */
 
-app.addEventListener("click", (event) => {
-  const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
-    "button[data-command]"
-  );
-  if (!button) {
-    return;
-  }
+function attachScrollAreaEventHandlers(scrollE: HTMLDivElement) {
+  scrollE.addEventListener("keydown", (event) => {
+    const action = actionFromKeyboardEvent(event);
+    if (!action) {
+      return;
+    }
 
-  const command = button.dataset.command;
-  if (command === "undo") {
-    editor.dispatch({ type: "undo" });
-  }
-  if (command === "redo") {
-    editor.dispatch({ type: "redo" });
-  }
-  scrollArea.focus();
-});
+    event.preventDefault();
+    editor.dispatch(action);
+  });
 
-scrollArea.focus();
+  scrollE.addEventListener("pointerdown", () => {
+    scrollE.focus();
+  });
+
+  scrollE.addEventListener("blur", () => {
+    scrollE.classList.add("not-focused");
+  });
+
+  scrollE.addEventListener("focus", () => {
+    scrollE.classList.remove("not-focused");
+  });
+}
+
+function attachControllerButtonsHandlers(
+  app: Element,
+  scrollArea: HTMLDivElement
+) {
+  app.addEventListener("click", (event) => {
+    const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
+      "button[data-command]"
+    );
+    if (!button) {
+      return;
+    }
+
+    const command = button.dataset.command;
+    if (command === "undo") {
+      editor.dispatch({ type: "undo" });
+    }
+    if (command === "redo") {
+      editor.dispatch({ type: "redo" });
+    }
+    focusScrollArea(scrollArea);
+  });
+}
+
+function initEditorTracking(
+  linesElement: HTMLDivElement,
+  statusElement: HTMLElement
+) {
+  const editor = new EditorState();
+  const renderer = new EditorRenderer(editor, linesElement, statusElement);
+  editor.onDidChange(() => renderer.render());
+  renderer.render();
+
+  return { editor };
+}
