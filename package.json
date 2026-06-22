@@ -1,0 +1,20 @@
+{
+  "name": "learning-text-editor",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @learning-editor/editor-web",
+    "build": "npm run build --workspaces",
+    "test": "npm run test -w @learning-editor/editor-core"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "typescript": "^5.5.3",
+    "vite": "^5.3.3",
+    "vitest": "^1.6.0"
+  }
+}
