@@ -5,16 +5,8 @@ export function actionFromKeyboardEvent(
 ): EditorAction | undefined {
   const isShortcut = event.ctrlKey || event.metaKey;
 
-  if (isShortcut && event.key.toLowerCase() === "z") {
-    return event.shiftKey ? { type: "redo" } : { type: "undo" };
-  }
-
-  if (isShortcut && event.key.toLowerCase() === "y") {
-    return { type: "redo" };
-  }
-
-  if (isShortcut || event.altKey) {
-    return undefined;
+  if (isShortcut) {
+    return handleShortcut(event);
   }
 
   switch (event.key) {
@@ -54,5 +46,19 @@ export function actionFromKeyboardEvent(
       }
 
       return undefined;
+  }
+}
+
+function handleShortcut(event: KeyboardEvent): EditorAction | undefined {
+  if (event.key.toLowerCase() === "z") {
+    return event.shiftKey ? { type: "redo" } : { type: "undo" };
+  }
+
+  if (event.key.toLowerCase() === "y") {
+    return { type: "redo" };
+  }
+
+  if (event.altKey) {
+    return undefined;
   }
 }
