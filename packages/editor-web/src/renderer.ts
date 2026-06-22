@@ -6,15 +6,18 @@ import {
   type Position,
   type Range
 } from "@learning-editor/editor-core";
-
-const charWidthPx = 8.4;
+import { getCanvasFont, getTextWidth } from "./utils/text-width";
 
 export class EditorRenderer {
+  private lineFont: string;
+
   constructor(
     private readonly editor: EditorState,
     private readonly linesElement: HTMLElement,
     private readonly statusElement: HTMLElement
-  ) {}
+  ) {
+    this.lineFont = getCanvasFont(linesElement);
+  }
 
   render(): void {
     const lines = this.editor.getLines();
@@ -41,15 +44,11 @@ export class EditorRenderer {
     cursor: Position,
     selectedRange: Range | undefined
   ): HTMLElement {
-    const row = document.createElement("div");
-    row.className = "editor-row";
+    const charWidthPx = this.getCharWidthPx(lineText);
 
-    const gutter = document.createElement("div");
-    gutter.className = "editor-gutter";
-    gutter.textContent = String(lineIndex + 1);
-
-    const text = document.createElement("div");
-    text.className = "editor-text";
+    const row = this.createRowEl();
+    const gutter = this.createGutterEl(lineIndex);
+    const text = this.createTextEl();
 
     const selectionBounds = selectedRange
       ? getLineSelectionBounds(lineText, lineIndex, selectedRange)
@@ -80,6 +79,29 @@ export class EditorRenderer {
 
     row.append(gutter, text);
     return row;
+  }
+
+  private createRowEl() {
+    const row = document.createElement("div");
+    row.className = "editor-row";
+    return row;
+  }
+
+  private createGutterEl(lineIndex: number) {
+    const gutter = document.createElement("div");
+    gutter.className = "editor-gutter";
+    gutter.textContent = String(lineIndex + 1);
+    return gutter;
+  }
+
+  private createTextEl() {
+    const text = document.createElement("div");
+    text.className = "editor-text";
+    return text;
+  }
+
+  private getCharWidthPx(ch: string) {
+    return getTextWidth(ch[ch.length - 1] || ch, this.lineFont);
   }
 }
 
