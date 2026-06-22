@@ -23,16 +23,30 @@ export class EditorRenderer {
     const lines = this.editor.getLines();
     const selection = this.editor.getSelection();
     const cursor = this.editor.getCursor();
+
+    const activeLineIndex = selection.active.line;
+
     const selectedRange = isSelectionCollapsed(selection)
       ? undefined
       : selectionToRange(selection);
 
+    // Optimize this to update the current lines, not create new ones
     this.linesElement.replaceChildren(
       ...lines.map((line, index) =>
-        this.renderLine(line, index, cursor, selectedRange)
+        this.renderLine(
+          line,
+          index,
+          cursor,
+          selectedRange,
+          index === activeLineIndex
+        )
       )
     );
 
+    this.renderFooterLine(cursor);
+  }
+
+  private renderFooterLine(cursor: Position) {
     this.statusElement.textContent = `Line ${cursor.line + 1}, Column ${
       cursor.column + 1
     }`;
@@ -42,11 +56,12 @@ export class EditorRenderer {
     lineText: string,
     lineIndex: number,
     cursor: Position,
-    selectedRange: Range | undefined
+    selectedRange: Range | undefined,
+    isActive: boolean
   ): HTMLElement {
     const charWidthPx = this.getCharWidthPx(lineText);
 
-    const row = this.createRowEl();
+    const row = this.createRowEl(isActive);
     const gutter = this.createGutterEl(lineIndex);
     const text = this.createTextEl();
 
@@ -81,9 +96,9 @@ export class EditorRenderer {
     return row;
   }
 
-  private createRowEl() {
+  private createRowEl(isActive: boolean) {
     const row = document.createElement("div");
-    row.className = "editor-row";
+    row.className = `editor-row ${isActive ? "selected" : ""}`;
     return row;
   }
 
