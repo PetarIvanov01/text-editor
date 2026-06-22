@@ -1,12 +1,29 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Learning Text Editor</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning Text Editor</title>
+</head>
+
+<body>
+  <div id="app">
+    <main class="shell">
+      <header class="toolbar">
+        <button class="toolbar-button" type="button" data-command="undo">Undo</button>
+        <button class="toolbar-button" type="button" data-command="redo">Redo</button>
+      </header>
+      <section class="editor-frame" aria-label="Text editor">
+        <div class="editor-scroll" tabindex="0">
+          <div class="editor-lines"></div>
+        </div>
+        <textarea id="textarea" class="input-capture" aria-hidden="true" tabindex="-1"></textarea>
+      </section>
+      <footer class="status-bar"></footer>
+    </main>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>
