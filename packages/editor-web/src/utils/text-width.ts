@@ -27,3 +27,7 @@ export function getCanvasFont(el = document.body) {
 function getCssStyle(element: HTMLElement, prop: string) {
   return window.getComputedStyle(element, null).getPropertyValue(prop);
 }
+
+export function getCharWidthPx(ch: string, font: string) {
+  return getTextWidth(ch[ch.length - 1] || ch, font);
+}

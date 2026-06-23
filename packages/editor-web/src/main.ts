@@ -4,6 +4,8 @@ import { EditorRenderer } from "./renderer";
 import { focusScrollArea, queryEditorElements } from "./utils";
 import { actionFromKeyboardEvent } from "./keyboard";
 import "./styles.css";
+import { EditorElements } from "./editor-elements";
+import { LinesRenderer } from "./lines-renderer";
 
 const app = document.querySelector("#app");
 
@@ -43,7 +45,7 @@ function attachScrollAreaEventHandlers(scrollE: HTMLDivElement) {
   });
 
   scrollE.addEventListener("blur", () => {
-    scrollE.classList.add("not-focused");
+    // scrollE.classList.add("not-focused");
   });
 
   scrollE.addEventListener("focus", () => {
@@ -79,9 +81,17 @@ function initEditorTracking(
   statusElement: HTMLElement
 ) {
   const editor = new EditorState();
-  const renderer = new EditorRenderer(editor, linesElement, statusElement);
-  editor.onDidChange(() => renderer.render());
-  renderer.render();
+  const editorElements = new EditorElements();
+  const linesRenderer = new LinesRenderer(linesElement, editorElements);
+  const editorRenderer = new EditorRenderer(
+    editor,
+    linesRenderer,
+    statusElement,
+    editorElements
+  );
+
+  editor.onDidChange((event) => editorRenderer.render(event));
+  editorRenderer.render({ changes: [] });
 
   return { editor };
 }

@@ -1,6 +1,7 @@
 export type CursorDirection = "left" | "right" | "up" | "down";
 
 export type EditorAction =
+  | { type: "init" }
   | { type: "insertText"; text: string }
   | { type: "deleteLeft" }
   | { type: "deleteRight" }

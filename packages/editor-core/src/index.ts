@@ -1,6 +1,6 @@
 export type { EditorAction, CursorDirection } from "./actions";
 export { EditorState } from "./editorState";
-export type { EditorChangeEvent } from "./editorState";
+export type { EditorChange, EditorChangeEvent } from "./editorChanges";
 export { Emitter } from "./events";
 export type { Disposable, Listener } from "./events";
 export type { Position } from "./position";

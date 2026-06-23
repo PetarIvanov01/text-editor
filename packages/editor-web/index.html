@@ -11,8 +11,7 @@
   <div id="app">
     <main class="shell">
       <header class="toolbar">
-        <button class="toolbar-button" type="button" data-command="undo">Undo</button>
-        <button class="toolbar-button" type="button" data-command="redo">Redo</button>
+        <button class="toolbar-button" type="button" data-command="help">Help</button>
       </header>
       <section class="editor-frame" aria-label="Text editor">
         <div class="editor-scroll" tabindex="0">
@@ -22,6 +21,52 @@
       </section>
       <footer class="status-bar"></footer>
     </main>
+    <dialog class="keyboard-dialog" aria-labelledby="keyboard-dialog-title">
+      <div class="keyboard-dialog-header">
+        <h2 id="keyboard-dialog-title">Keyboard Commands</h2>
+        <form method="dialog">
+          <button class="dialog-close" type="submit" aria-label="Close">x</button>
+        </form>
+      </div>
+      <dl class="keyboard-command-list">
+        <div>
+          <dt>Type character</dt>
+          <dd>Insert text</dd>
+        </div>
+        <div>
+          <dt>Enter</dt>
+          <dd>Insert new line</dd>
+        </div>
+        <div>
+          <dt>Backspace</dt>
+          <dd>Delete left</dd>
+        </div>
+        <div>
+          <dt>Delete</dt>
+          <dd>Delete right</dd>
+        </div>
+        <div>
+          <dt>Arrow keys</dt>
+          <dd>Move cursor</dd>
+        </div>
+        <div>
+          <dt>Shift + Arrow keys</dt>
+          <dd>Extend selection</dd>
+        </div>
+        <div>
+          <dt>Ctrl/Cmd + Z</dt>
+          <dd>Undo</dd>
+        </div>
+        <div>
+          <dt>Ctrl/Cmd + Shift + Z</dt>
+          <dd>Redo</dd>
+        </div>
+        <div>
+          <dt>Ctrl/Cmd + Y</dt>
+          <dd>Redo</dd>
+        </div>
+      </dl>
+    </dialog>
   </div>
   <script type="module" src="/src/main.ts"></script>
 </body>

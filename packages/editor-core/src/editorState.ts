@@ -1,4 +1,5 @@
 import type { EditorAction } from "./actions";
+import { EditorChange, EditorChangeEvent } from "./editorChanges";
 import { Emitter, type Disposable, type Listener } from "./events";
 import { cloneSnapshot, History, type EditorSnapshot } from "./history";
 import { comparePositions, type Position } from "./position";
@@ -11,12 +12,7 @@ import {
 } from "./selection";
 import { TextModel } from "./textModel";
 
-export interface EditorChangeEvent {
-  action: EditorAction;
-  text: string;
-  lines: string[];
-  selection: Selection;
-}
+type MoveCursorAction = Extract<EditorAction, { type: "moveCursor" }>;
 
 export class EditorState {
   private readonly model: TextModel;
@@ -34,6 +30,7 @@ export class EditorState {
     return this.onDidChangeEmitter.event(listener);
   }
 
+  // El Patrone -> All User Events come here
   dispatch(action: EditorAction): void {
     switch (action.type) {
       case "insertText":
@@ -52,10 +49,10 @@ export class EditorState {
         this.moveCursor(action);
         break;
       case "undo":
-        this.restoreFromHistory(action, "undo");
+        this.restoreFromHistory(action);
         break;
       case "redo":
-        this.restoreFromHistory(action, "redo");
+        this.restoreFromHistory(action);
         break;
     }
   }
@@ -111,13 +108,13 @@ export class EditorState {
     this.commitEdit(action, { start: cursor, end }, "");
   }
 
-  private moveCursor(
-    action: Extract<EditorAction, { type: "moveCursor" }>
-  ): void {
+  private moveCursor(action: MoveCursorAction): void {
+    const previousSelection = this.getSelection();
     const active = this.selection.active;
+
     const preferredColumn =
       action.direction === "up" || action.direction === "down"
-        ? this.preferredColumn ?? active.column
+        ? (this.preferredColumn ?? active.column)
         : undefined;
 
     let next: Position;
@@ -148,7 +145,15 @@ export class EditorState {
         ? preferredColumn
         : undefined;
 
-    this.emitChange(action);
+    this.emitChange({
+      changes: [
+        {
+          type: "selectionChanged",
+          current: this.getSelection(),
+          previous: previousSelection
+        }
+      ]
+    });
   }
 
   private commitEdit(action: EditorAction, range: Range, text: string): void {
@@ -158,16 +163,24 @@ export class EditorState {
     this.history.push(before);
     this.selection = collapsedSelection(result.endPosition);
     this.preferredColumn = undefined;
-    this.emitChange(action);
+
+    const changes = buildTextChanges(before.lines, this.getLines());
+
+    if (changes[0]?.type !== "documentReset") {
+      changes.push({
+        type: "selectionChanged",
+        previous: before.selection,
+        current: this.getSelection()
+      });
+    }
+
+    this.emitChange({ changes });
   }
 
-  private restoreFromHistory(
-    action: EditorAction,
-    direction: "undo" | "redo"
-  ): void {
+  private restoreFromHistory(action: EditorAction): void {
     const current = this.createSnapshot();
     const next =
-      direction === "undo"
+      action.type === "undo"
         ? this.history.undo(current)
         : this.history.redo(current);
 
@@ -176,7 +189,7 @@ export class EditorState {
     }
 
     this.restoreSnapshot(next);
-    this.emitChange(action);
+    this.emitChange({ changes: [{ type: "documentReset" }] });
   }
 
   private getReplacementRange(): Range {
@@ -202,13 +215,8 @@ export class EditorState {
     this.preferredColumn = copy.preferredColumn;
   }
 
-  private emitChange(action: EditorAction): void {
-    this.onDidChangeEmitter.fire({
-      action,
-      text: this.getText(),
-      lines: this.getLines(),
-      selection: this.getSelection()
-    });
+  private emitChange(event: EditorChangeEvent): void {
+    this.onDidChangeEmitter.fire(event);
   }
 }
 
@@ -217,4 +225,28 @@ function cloneSelection(selection: Selection): Selection {
     anchor: { ...selection.anchor },
     active: { ...selection.active }
   };
+}
+
+function buildTextChanges(
+  previousLines: string[],
+  currentLines: string[]
+): EditorChange[] {
+  if (previousLines.length !== currentLines.length) {
+    return [{ type: "documentReset" }];
+  }
+
+  const changes: EditorChange[] = [];
+
+  for (let index = 0; index < currentLines.length; index += 1) {
+    if (previousLines[index] !== currentLines[index]) {
+      changes.push({
+        type: "lineChanged",
+        lineIndex: index,
+        previousText: previousLines[index],
+        currentText: currentLines[index]
+      });
+    }
+  }
+
+  return changes;
 }
