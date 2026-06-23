@@ -45,6 +45,12 @@ export class EditorState {
       case "deleteRight":
         this.deleteRight(action);
         break;
+      case "deleteTokenLeft":
+        this.deleteTokenLeft();
+        break;
+      case "deleteTokenRight":
+        this.deleteTokenRight();
+        break;
       case "moveCursor":
         this.moveCursor(action);
         break;
@@ -107,6 +113,10 @@ export class EditorState {
 
     this.commitEdit(action, { start: cursor, end }, "");
   }
+
+  private deleteTokenLeft(): void {}
+
+  private deleteTokenRight(): void {}
 
   private moveCursor(action: MoveCursorAction): void {
     const previousSelection = this.getSelection();

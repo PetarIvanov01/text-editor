@@ -12,4 +12,6 @@ export type EditorAction =
       extendSelection?: boolean;
     }
   | { type: "undo" }
-  | { type: "redo" };
+  | { type: "redo" }
+  | { type: "deleteTokenLeft" }
+  | { type: "deleteTokenRight" };

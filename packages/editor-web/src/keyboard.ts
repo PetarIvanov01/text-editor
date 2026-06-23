@@ -1,4 +1,25 @@
-import type { EditorAction } from "@learning-editor/editor-core";
+import type { CursorDirection, EditorAction } from "@learning-editor/editor-core";
+
+const editKeyActions: Record<string, EditorAction> = {
+  Backspace: { type: "deleteLeft" },
+  Delete: { type: "deleteRight" },
+  Enter: { type: "insertNewLine" }
+};
+
+const cursorDirections: Record<string, CursorDirection> = {
+  ArrowLeft: "left",
+  ArrowRight: "right",
+  ArrowUp: "up",
+  ArrowDown: "down"
+};
+
+const shortcutActions: Record<string, EditorAction> = {
+  Backspace: { type: "deleteTokenLeft" },
+  Delete: { type: "deleteTokenRight" },
+  Y: { type: "redo" },
+  Z: { type: "undo" },
+  "Shift+Z": { type: "redo" }
+};
 
 export function actionFromKeyboardEvent(
   event: KeyboardEvent
@@ -9,56 +30,33 @@ export function actionFromKeyboardEvent(
     return handleShortcut(event);
   }
 
-  switch (event.key) {
-    case "Backspace":
-      return { type: "deleteLeft" };
-    case "Delete":
-      return { type: "deleteRight" };
-    case "Enter":
-      return { type: "insertNewLine" };
-    case "ArrowLeft":
-      return {
-        type: "moveCursor",
-        direction: "left",
-        extendSelection: event.shiftKey
-      };
-    case "ArrowRight":
-      return {
-        type: "moveCursor",
-        direction: "right",
-        extendSelection: event.shiftKey
-      };
-    case "ArrowUp":
-      return {
-        type: "moveCursor",
-        direction: "up",
-        extendSelection: event.shiftKey
-      };
-    case "ArrowDown":
-      return {
-        type: "moveCursor",
-        direction: "down",
-        extendSelection: event.shiftKey
-      };
-    default:
-      if (event.key.length === 1) {
-        return { type: "insertText", text: event.key };
-      }
-
-      return undefined;
+  const editAction = editKeyActions[event.key];
+  if (editAction) {
+    return editAction;
   }
+
+  const direction = cursorDirections[event.key];
+  if (direction) {
+    return {
+      type: "moveCursor",
+      direction,
+      extendSelection: event.shiftKey
+    };
+  }
+
+  if (event.key.length === 1) {
+    return { type: "insertText", text: event.key };
+  }
+
+  return undefined;
 }
 
 function handleShortcut(event: KeyboardEvent): EditorAction | undefined {
-  if (event.key.toLowerCase() === "z") {
-    return event.shiftKey ? { type: "redo" } : { type: "undo" };
-  }
-
-  if (event.key.toLowerCase() === "y") {
-    return { type: "redo" };
-  }
-
   if (event.altKey) {
     return undefined;
   }
+
+  const key = event.key.length === 1 ? event.key.toUpperCase() : event.key;
+  const shortcutKey = event.shiftKey ? `Shift+${key}` : key;
+  return shortcutActions[shortcutKey];
 }
