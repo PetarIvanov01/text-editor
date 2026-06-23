@@ -7,13 +7,9 @@ export class EditorElements {
     this.footerLine = document.createElement("div");
   }
 
-  // This active state won't work that way with the optimized version
-  // Right now it works because I am re-creating all of the lines on each change
-  // However this is not correct.
-  // Rather, I have to track the cursor movement and update the row meta
-  createRow(isActive: boolean) {
+  createRow() {
     const row = document.createElement("div");
-    row.className = `editor-row ${isActive ? "selected" : ""}`;
+    row.className = "editor-row";
     row.dataset.id = String(randomId());
     return row;
   }

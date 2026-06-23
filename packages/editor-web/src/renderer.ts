@@ -4,8 +4,8 @@ import {
   type EditorState,
   type Position
 } from "@learning-editor/editor-core";
-import { EditorElements } from "./editor-elements";
-import { LinesRenderer } from "./lines-renderer";
+import { type EditorElements } from "./editor-elements";
+import { type LinesRenderer } from "./lines-renderer";
 
 export class EditorRenderer {
   constructor(
@@ -16,7 +16,6 @@ export class EditorRenderer {
   ) {}
 
   render(event: EditorChangeEvent): void {
-    console.info(event);
     if (event.changes.length === 0) {
       this.renderFullSync();
       return;
@@ -27,28 +26,26 @@ export class EditorRenderer {
     }
   }
 
-  renderFullSync(): void {
+  private renderFullSync(): void {
     const lines = this.editor.getLines();
     const selection = this.editor.getSelection();
     const cursor = this.editor.getCursor();
 
-    this.linesRenderer.render(lines, selection, cursor);
+    this.linesRenderer.sync(lines, selection);
     this.renderFooterLine(cursor);
   }
 
-  // Todo: perform the correct changes
   private renderChange(change: EditorChange): void {
     switch (change.type) {
       case "selectionChanged":
-        this.renderFullSync();
+        this.linesRenderer.updateSelection(change.previous, change.current);
+        this.renderFooterLine(change.current.active);
         break;
 
       case "lineChanged":
-        this.renderFullSync();
+        this.linesRenderer.updateLine(change.lineIndex, change.currentText);
         break;
 
-      case "linesInserted":
-      case "linesRemoved":
       case "documentReset":
         this.renderFullSync();
         break;
