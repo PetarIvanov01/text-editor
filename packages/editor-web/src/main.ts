@@ -22,7 +22,7 @@ if (!scrollArea || !linesElement || !statusElement || !inputCapture) {
 
 const { editor } = initEditorTracking(linesElement, statusElement);
 
-attachControllerButtonsHandlers(app, scrollArea);
+attachToolbarHandlers(app, scrollArea);
 attachScrollAreaEventHandlers(scrollArea);
 
 focusScrollArea(scrollArea);
@@ -53,10 +53,17 @@ function attachScrollAreaEventHandlers(scrollE: HTMLDivElement) {
   });
 }
 
-function attachControllerButtonsHandlers(
+function attachToolbarHandlers(
   app: Element,
   scrollArea: HTMLDivElement
 ) {
+  const keyboardDialog =
+    app.querySelector<HTMLDialogElement>(".keyboard-dialog");
+
+  keyboardDialog?.addEventListener("close", () => {
+    focusScrollArea(scrollArea);
+  });
+
   app.addEventListener("click", (event) => {
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
       "button[data-command]"
@@ -66,11 +73,9 @@ function attachControllerButtonsHandlers(
     }
 
     const command = button.dataset.command;
-    if (command === "undo") {
-      editor.dispatch({ type: "undo" });
-    }
-    if (command === "redo") {
-      editor.dispatch({ type: "redo" });
+    if (command === "help") {
+      keyboardDialog?.showModal();
+      return;
     }
     focusScrollArea(scrollArea);
   });
